@@ -50,5 +50,4 @@ out/
 /cache/
 /db/
 /gatling/
-/gradle/
 /load-test/
