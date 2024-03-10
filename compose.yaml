@@ -25,13 +25,17 @@ services:
         '-c',
         'max_connections=800',
         '-c',
-        'shared_buffers=128MB',
+        'shared_buffers=30MB',
         '-c',
-        'synchronous_commit=off',
+        'effective_cache_size=60MB',
         '-c',
-        'fsync=off',
+        'checkpoint_completion_target=0.9',
         '-c',
-        'full_page_writes=off',
+        'wal_buffers=768kB',
+        '-c',
+        'work_mem=64kB',
+        '-c',
+        'huge_pages=off',
       ]
     hostname: db
     environment:
@@ -42,7 +46,6 @@ services:
       - '5432:5432'
     volumes:
       - './init.sql:/docker-entrypoint-initdb.d/init.sql'
-      - './db/logs:/logs'
     healthcheck:
       test: [ "CMD-SHELL", "pg_isready" ]
       interval: 5s
@@ -53,7 +56,7 @@ services:
       resources:
         limits:
           cpus: '0.5'
-          memory: '100MB'
+          memory: '110MB'
   app1: &api
     image: 'ritilopes/rinhabackend:latest'
     hostname: app1
@@ -72,16 +75,13 @@ services:
     deploy:
       resources:
         limits:
-          cpus: '0.8'
-          memory: '205MB'
+          cpus: '0.6'
+          memory: '200MB'
   app2:
     <<: *api
     hostname: app2
     ports:
       - '8082:8080'
-
-volumes:
-  db-logs:
 
 networks:
   default:

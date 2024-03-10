@@ -40,8 +40,10 @@ CREATE OR REPLACE FUNCTION validate_transaction(
     DECLARE
         ret RECORD;
         clientencontrado client%rowtype;
+        transactionCount INT;
     BEGIN
         SELECT * INTO clientencontrado FROM client WHERE id = clientId FOR UPDATE;
+        SELECT count(1) INTO transactionCount FROM client_transaction WHERE client_id = clientId;
 
         IF NOT FOUND THEN
             RAISE EXCEPTION 'Client not found';
@@ -50,6 +52,10 @@ CREATE OR REPLACE FUNCTION validate_transaction(
         IF tipo = 'd' AND clientencontrado.credit + (clientencontrado.balance - valor) < 0
         THEN
             RAISE EXCEPTION 'Insufficient funds';
+        END IF;
+
+        IF transactionCount = 10 THEN
+            DELETE FROM client_transaction WHERE client_id = clientId AND created_at = (SELECT min(created_at) FROM client_transaction WHERE client_id = clientId);
         END IF;
 
         INSERT INTO client_transaction (client_id, amount, description, transaction_type)
